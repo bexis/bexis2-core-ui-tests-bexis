@@ -6,6 +6,8 @@ import {
   test,
 } from '@playwright/test';
 
+import { mitLadewarnung } from './helpers/ladewarnung';
+
 const STARTSEITE = '/home/Start';
 const STARTSEITEN_URL = 'https://www.bexis.uni-jena.de/home/Start';
 
@@ -241,8 +243,12 @@ function bereichsname(ziel: Navigationsziel): string {
 
 test.describe('BEXIS-Startseite – alle weiterführenden Elemente', () => {
   test.beforeEach(async ({ page }) => {
-    const response = await page.goto(STARTSEITE, {
-      waitUntil: 'domcontentloaded',
+    const response = await mitLadewarnung('Die BEXIS-Startseite', async () => {
+      const navigation = await page.goto(STARTSEITE, {
+        waitUntil: 'domcontentloaded',
+      });
+      await page.waitForLoadState('load');
+      return navigation;
     });
 
     expect(response, 'Die Startseite muss eine HTTP-Antwort liefern.').not.toBeNull();
@@ -285,38 +291,45 @@ test.describe('BEXIS-Startseite – alle weiterführenden Elemente', () => {
       await expect(link, `"${ziel.name}" muss sichtbar sein.`).toBeVisible();
       await expect(link).toBeEnabled();
 
-      let zielseite: Page;
+      const zielseite = await mitLadewarnung(
+        `Die Zielseite "${ziel.name}"`,
+        async () => {
+          let geladeneSeite: Page;
 
-      if (ziel.neuerTab) {
-        [zielseite] = await Promise.all([
-          context.waitForEvent('page'),
-          link.click(),
-        ]);
+          if (ziel.neuerTab) {
+            [geladeneSeite] = await Promise.all([
+              context.waitForEvent('page'),
+              link.click(),
+            ]);
 
-        // Das "page"-Ereignis kann bereits für den kurzlebigen about:blank-
-        // Zustand des neuen Tabs eintreffen. Erst die echte Ziel-URL werten.
-        await zielseite.waitForURL(
-          (url) => url.protocol !== 'about:',
-          { waitUntil: 'domcontentloaded' },
-        );
-      } else {
-        const [navigation] = await Promise.all([
-          page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
-          link.click(),
-        ]);
+            // Das "page"-Ereignis kann bereits für den kurzlebigen about:blank-
+            // Zustand des neuen Tabs eintreffen. Erst die echte Ziel-URL werten.
+            await geladeneSeite.waitForURL(
+              (url) => url.protocol !== 'about:',
+              { waitUntil: 'domcontentloaded' },
+            );
+          } else {
+            const [navigation] = await Promise.all([
+              page.waitForNavigation({ waitUntil: 'domcontentloaded' }),
+              link.click(),
+            ]);
 
-        expect(
-          navigation,
-          `"${ziel.name}" muss eine Dokument-Antwort auslösen.`,
-        ).not.toBeNull();
-        expect(
-          navigation!.status(),
-          `"${ziel.name}" antwortete mit HTTP ${navigation!.status()}.`,
-        ).toBeLessThan(400);
-        zielseite = page;
-      }
+            expect(
+              navigation,
+              `"${ziel.name}" muss eine Dokument-Antwort auslösen.`,
+            ).not.toBeNull();
+            expect(
+              navigation!.status(),
+              `"${ziel.name}" antwortete mit HTTP ${navigation!.status()}.`,
+            ).toBeLessThan(400);
+            geladeneSeite = page;
+          }
 
-      await zielseite.waitForLoadState('load');
+          await geladeneSeite.waitForLoadState('load');
+          return geladeneSeite;
+        },
+      );
+
       await expect(zielseite.locator('body')).toBeVisible();
       await expect
         .poll(() => zielseite.evaluate(() => document.readyState))

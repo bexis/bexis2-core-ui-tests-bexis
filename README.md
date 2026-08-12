@@ -32,3 +32,11 @@ Alternativ können die Tests ohne UI ausgeführt werden:
 ```powershell
 pnpm test
 ```
+
+## Warnung bei langsamen Seiten
+
+Braucht die Startseite oder eine angeklickte Zielseite länger als fünf
+Sekunden bis zum vollständigen Laden, erscheint eine `[WARNUNG]` in der
+Testausgabe. Der betroffene Test wird als fehlgeschlagen markiert, aber nicht
+sofort abgebrochen: Seine weiteren Prüfungen und alle nachfolgenden Tests laufen
+weiter. Die regulären Playwright-Timeouts gelten ebenfalls weiterhin.

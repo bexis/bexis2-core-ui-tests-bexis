@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { mitLadewarnung } from './helpers/ladewarnung';
+
 const STARTSEITE = '/home/Start';
 
 // Stand 27.07.2026: alle auf der Desktop-Startseite sichtbaren Elemente
@@ -14,8 +16,12 @@ const MENU_BUTTONS = [
 
 test.describe('BEXIS-Startseite – Buttons', () => {
   test.beforeEach(async ({ page }) => {
-    const response = await page.goto(STARTSEITE, {
-      waitUntil: 'domcontentloaded',
+    const response = await mitLadewarnung('Die BEXIS-Startseite', async () => {
+      const navigation = await page.goto(STARTSEITE, {
+        waitUntil: 'domcontentloaded',
+      });
+      await page.waitForLoadState('load');
+      return navigation;
     });
 
     expect(response, 'Die Startseite muss eine HTTP-Antwort liefern.').not.toBeNull();
