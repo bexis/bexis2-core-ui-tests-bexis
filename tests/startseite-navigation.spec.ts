@@ -1,11 +1,10 @@
 import {
-  expect,
   type Locator,
   type Page,
   type Response,
-  test,
 } from '@playwright/test';
 
+import { expect, test } from './fixtures';
 import { mitLadewarnung } from './helpers/ladewarnung';
 
 const STARTSEITE = '/home/Start';

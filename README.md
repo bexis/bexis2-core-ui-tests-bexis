@@ -11,7 +11,8 @@ Navigations-Button sowie jeden weiterführenden Link einzeln:
 - Die Zielseite liefert einen HTTP-Status unter 400, erreicht den vollständigen
   Ladezustand und enthält sichtbaren Inhalt.
 - Es treten keine JavaScript-Seitenfehler, Browser-Fehlerseiten oder
-  fehlgeschlagenen Dokument-Anfragen auf.
+  fehlgeschlagenen Dokument-Anfragen auf. Ausgaben mit `console.error` werden
+  auf der Startseite und in neu geöffneten Tabs ebenfalls als Testfehler gewertet.
 - Vollständigkeitstests melden neue oder entfernte Buttons und Links.
 
 ## Installation
